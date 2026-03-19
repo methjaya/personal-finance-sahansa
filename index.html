@@ -1,1 +1,732 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thinel · Finance Dashboard 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=DM+Mono:wght@300;400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --bg:#f7f5f0;--bg2:#ffffff;--bg3:#f0ede6;--bg4:#e8e4db;
+  --ink:#1a1814;--ink2:#4a4640;--ink3:#9a958d;--ink4:#c8c3bb;
+  --gold:#b8860b;--gold-l:#fdf6e3;--gold-b:rgba(184,134,11,0.22);
+  --red:#c0392b;--red-l:#fdf0ef;--red-b:rgba(192,57,43,0.18);
+  --green:#1a7a4a;--green-l:#edf7f2;--green-b:rgba(26,122,74,0.18);
+  --blue:#1d6fa4;--blue-l:#eef5fb;--blue-b:rgba(29,111,164,0.18);
+  --teal:#0e7c74;--teal-l:#edf7f6;--teal-b:rgba(14,124,116,0.18);
+  --border:#e2ddd5;--border2:#ccc7be;
+  --radius:14px;--rsm:9px;
+  --shadow:0 2px 12px rgba(0,0,0,0.07);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;line-height:1.6;overflow-x:hidden}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:54px;background:rgba(247,245,240,0.94);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+.nav-brand{font-family:'Playfair Display',serif;font-size:15px;color:var(--gold);font-weight:700}
+.nav-links{display:flex;gap:2px;list-style:none}
+.nav-links a{color:var(--ink2);text-decoration:none;font-size:12px;font-weight:500;padding:4px 8px;border-radius:6px;transition:.2s;white-space:nowrap}
+.nav-links a:hover{background:var(--bg3);color:var(--ink)}
+.nav-right{font-family:'DM Mono',monospace;font-size:11px;color:var(--ink3);white-space:nowrap}
+@media(max-width:600px){.nav-links{display:none}}
+
+/* LAYOUT */
+.wrap{max-width:760px;margin:0 auto;padding:0 16px}
+section{padding:52px 0 16px}
+
+/* SECTION LABELS */
+.stag{font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px}
+.stitle{font-family:'Playfair Display',serif;font-size:clamp(20px,5vw,30px);font-weight:700;line-height:1.15;margin-bottom:5px;color:var(--ink)}
+.sdesc{font-size:13px;color:var(--ink3);margin-bottom:24px}
+.divider{height:1px;background:var(--border);margin:8px 0 0}
+
+/* ════════════════════════════════
+   REMINDERS BLOCK
+════════════════════════════════ */
+#reminders{background:var(--ink);padding:54px 0 0}
+
+.rem-top{padding:18px 16px 10px;display:flex;align-items:center;gap:10px}
+.rem-top-title{font-family:'Playfair Display',serif;font-size:20px;color:#fff;font-weight:700}
+.rem-badge{background:var(--red);color:#fff;font-size:10px;font-family:'DM Mono',monospace;padding:3px 9px;border-radius:20px;letter-spacing:.05em}
+
+.rem-scroll{display:flex;gap:11px;padding:4px 16px 18px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.rem-scroll::-webkit-scrollbar{display:none}
+
+.rem-card{flex-shrink:0;width:150px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 13px;position:relative;overflow:hidden}
+.rem-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.rem-card.cg::before{background:#c9a84c}
+.rem-card.cr::before{background:#e74c3c}
+.rem-card.ct::before{background:#2dd4bf}
+.rem-card.cb::before{background:#60a5fa}
+.rem-card.cgr::before{background:#4ade80}
+
+.rem-due{font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,0.38);letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px}
+.rem-name{font-size:13px;color:#fff;font-weight:600;margin-bottom:7px;line-height:1.3}
+.rem-amt{font-family:'DM Mono',monospace;font-size:19px;font-weight:500;margin-bottom:2px}
+.rem-card.cg .rem-amt{color:#e8c96b}
+.rem-card.cr .rem-amt{color:#fc8a80}
+.rem-card.ct .rem-amt{color:#5ee8dc}
+.rem-card.cb .rem-amt{color:#93c5fd}
+.rem-card.cgr .rem-amt{color:#86efac}
+.rem-note{font-size:11px;color:rgba(255,255,255,0.32);line-height:1.4}
+
+.rem-alert{margin:0 16px 14px;background:rgba(192,57,43,0.22);border:1px solid rgba(192,57,43,0.35);border-radius:10px;padding:12px 14px;display:flex;gap:9px;align-items:flex-start}
+.rem-alert-icon{font-size:15px;flex-shrink:0;color:#fc8a80}
+.rem-alert-text{font-size:12px;color:rgba(255,255,255,0.72);line-height:1.65}
+.rem-alert-text strong{color:#fc8a80}
+
+.rem-check{margin:0 16px 20px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);border-radius:11px;padding:14px 15px}
+.rem-check-hd{font-size:10px;color:rgba(255,255,255,0.36);letter-spacing:.12em;text-transform:uppercase;font-family:'DM Mono',monospace;margin-bottom:10px}
+.chk-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;color:rgba(255,255,255,0.6)}
+.chk-row:last-child{border-bottom:none}
+.chk-box{width:18px;height:18px;border-radius:5px;border:1.5px solid rgba(255,255,255,0.18);background:transparent;cursor:pointer;flex-shrink:0;transition:.2s;display:flex;align-items:center;justify-content:center;user-select:none}
+.chk-box.on{background:#4ade80;border-color:#4ade80}
+.chk-box.on::after{content:'✓';font-size:11px;color:#0f2d1a;font-weight:700}
+.chk-right{margin-left:auto;font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,0.28)}
+
+/* ════════════════════════════════
+   HERO
+════════════════════════════════ */
+#hero{background:var(--bg2);padding:36px 0 32px}
+.hero-title{font-family:'Playfair Display',serif;font-size:clamp(24px,6vw,38px);font-weight:900;line-height:1.1;margin-bottom:5px}
+.hero-title span{color:var(--gold)}
+.hero-sub{font-size:13px;color:var(--ink3);margin-bottom:24px}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.met{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px 14px;position:relative;overflow:hidden}
+.met::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.met.mg::before{background:var(--green)}
+.met.mr::before{background:var(--red)}
+.met.mo::before{background:var(--gold)}
+.met.ma::before{background:#d97706}
+.met-lbl{font-size:10px;color:var(--ink3);letter-spacing:.12em;text-transform:uppercase;font-family:'DM Mono',monospace;margin-bottom:7px}
+.met-val{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;margin-bottom:2px}
+.met.mg .met-val{color:var(--green)}
+.met.mr .met-val{color:var(--red)}
+.met.mo .met-val{color:var(--gold)}
+.met.ma .met-val{color:#d97706}
+.met-sub{font-size:11px;color:var(--ink3)}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px 16px;box-shadow:var(--shadow);margin-bottom:13px}
+.card-hd{font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;font-family:'DM Mono',monospace;margin-bottom:14px}
+
+/* EXPENSE ROWS */
+.erow{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
+.erow:last-child{border-bottom:none}
+.erow-l{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink2)}
+.edot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.erow-r{display:flex;align-items:center;gap:5px}
+.erow-amt{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;color:var(--ink)}
+.erow-pct{font-family:'DM Mono',monospace;font-size:10px;color:var(--ink3)}
+
+/* BAR ROWS */
+.brow{margin-bottom:13px}
+.brow-top{display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px}
+.brow-top span:first-child{color:var(--ink2)}
+.brow-top span:last-child{font-family:'DM Mono',monospace;color:var(--ink)}
+.btrack{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.bfill{height:100%;border-radius:3px;width:0;transition:width 1.2s cubic-bezier(.16,1,.3,1)}
+
+/* TOTAL BAND */
+.tband{background:linear-gradient(135deg,var(--gold-l),#fff);border:1px solid var(--gold-b);border-radius:var(--radius);padding:18px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:14px}
+.tband-lbl{font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;font-family:'DM Mono',monospace;margin-bottom:3px}
+.tband-val{font-family:'DM Mono',monospace;font-size:22px;font-weight:500;color:var(--gold)}
+.tband-val.g{color:var(--green)}
+
+/* DUE DATE CARDS */
+.due-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:16px}
+.due-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;box-shadow:var(--shadow)}
+.due-num{font-family:'Playfair Display',serif;font-size:40px;font-weight:900;line-height:1;margin-bottom:4px}
+.due-card:nth-child(1) .due-num{color:var(--gold)}
+.due-card:nth-child(2) .due-num{color:var(--red)}
+.due-card:nth-child(3) .due-num{color:var(--teal)}
+.due-card:nth-child(4) .due-num{color:var(--blue)}
+.due-name{font-size:13px;font-weight:600;margin-bottom:2px}
+.due-amt{font-family:'DM Mono',monospace;font-size:16px;font-weight:500;margin-bottom:2px}
+.due-card:nth-child(1) .due-amt{color:var(--gold)}
+.due-card:nth-child(2) .due-amt{color:var(--red)}
+.due-card:nth-child(3) .due-amt{color:var(--teal)}
+.due-card:nth-child(4) .due-amt{color:var(--blue)}
+.due-sub{font-size:11px;color:var(--ink3)}
+
+/* CC OPTION CARDS */
+.cc-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:16px}
+.cc-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;position:relative;transition:.2s}
+.cc-card.active{border:2px solid var(--gold);background:var(--gold-l)}
+.cc-card.active::after{content:'YOUR PLAN';position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--gold);color:#fff;font-size:9px;font-family:'DM Mono',monospace;padding:3px 9px;border-radius:20px;letter-spacing:.07em;white-space:nowrap}
+.cc-card.danger{border-color:var(--red-b);background:var(--red-l)}
+.cc-opt-lbl{font-size:10px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;font-family:'DM Mono',monospace;margin-bottom:9px}
+.cc-pmt{font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:var(--gold);margin-bottom:10px}
+.cc-card.danger .cc-pmt{color:var(--red)}
+.cc-stat{font-size:12px;color:var(--ink3);margin-bottom:3px}
+.cc-stat strong{color:var(--ink);font-weight:600}
+
+/* SLIDER */
+.slider-wrap{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.slider-lbl{font-size:13px;color:var(--ink2);white-space:nowrap}
+input[type=range]{-webkit-appearance:none;flex:1;min-width:100px;height:5px;background:var(--bg4);border-radius:3px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--gold);cursor:pointer;border:2px solid #fff;box-shadow:0 0 0 3px var(--gold-b)}
+.slider-val{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:var(--gold);min-width:90px;text-align:right}
+
+/* STAT PILLS */
+.pills{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.pill{background:var(--bg);border:1px solid var(--border);border-radius:var(--rsm);padding:12px 10px}
+.pill-lbl{font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;font-family:'DM Mono',monospace;margin-bottom:3px}
+.pill-val{font-family:'DM Mono',monospace;font-size:16px;font-weight:500}
+
+/* ALLOC CARDS */
+.alloc-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:11px;position:relative;overflow:hidden;transition:.2s}
+.alloc-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px}
+.alloc-card.a1::before{background:var(--red)}
+.alloc-card.a2::before{background:var(--green)}
+.alloc-card.a3::before{background:var(--gold)}
+.alloc-card.a4::before{background:var(--blue)}
+.alloc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px}
+.alloc-name{font-size:14px;font-weight:600;color:var(--ink)}
+.alloc-amt{font-family:'DM Mono',monospace;font-size:18px;font-weight:500}
+.alloc-card.a1 .alloc-amt{color:var(--red)}
+.alloc-card.a2 .alloc-amt{color:var(--green)}
+.alloc-card.a3 .alloc-amt{color:var(--gold)}
+.alloc-card.a4 .alloc-amt{color:var(--blue)}
+.alloc-desc{font-size:13px;color:var(--ink3);line-height:1.6;margin-bottom:10px}
+.alloc-bar{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.alloc-fill{height:100%;border-radius:3px;width:0;transition:width 1.4s cubic-bezier(.16,1,.3,1)}
+.alloc-card.a1 .alloc-fill{background:var(--red)}
+.alloc-card.a2 .alloc-fill{background:var(--green)}
+.alloc-card.a3 .alloc-fill{background:var(--gold)}
+.alloc-card.a4 .alloc-fill{background:var(--blue)}
+.alloc-pct{font-size:10px;color:var(--ink3);margin-top:4px;font-family:'DM Mono',monospace}
+
+/* ROADMAP TABLE */
+.table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{text-align:left;font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-family:'DM Mono',monospace;color:var(--ink3);padding:10px 12px;background:var(--bg3);border-bottom:1px solid var(--border);font-weight:500}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--ink2)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr.alt td{background:var(--bg)}
+tbody tr.done td{color:var(--green);background:var(--green-l)}
+td.mono{font-family:'DM Mono',monospace;color:var(--ink);font-size:12px}
+td.red{color:var(--red);font-family:'DM Mono',monospace;font-size:12px}
+td.gold{color:var(--gold);font-family:'DM Mono',monospace;font-size:12px}
+td.grn{color:var(--green);font-family:'DM Mono',monospace;font-size:12px;font-weight:600}
+.badge{display:inline-block;font-size:9px;font-family:'DM Mono',monospace;letter-spacing:.06em;padding:2px 7px;border-radius:20px}
+.badge.done{background:var(--green-l);color:var(--green);border:1px solid var(--green-b)}
+.badge.close{background:var(--gold-l);color:var(--gold);border:1px solid var(--gold-b)}
+@media(max-width:520px){thead th:nth-child(3),tbody td:nth-child(3){display:none}}
+
+/* TIMELINE */
+.timeline{padding-left:30px;position:relative}
+.timeline::before{content:'';position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:linear-gradient(to bottom,var(--gold),var(--teal),var(--green))}
+.tl{margin-bottom:28px;position:relative;opacity:0;transform:translateX(-8px);transition:.5s}
+.tl.vis{opacity:1;transform:translateX(0)}
+.tl-dot{position:absolute;left:-26px;top:4px;width:12px;height:12px;border-radius:50%;border:2px solid var(--bg2);box-shadow:0 0 0 3px var(--gold-b)}
+.tl-dot.gold{background:var(--gold)}
+.tl-dot.teal{background:var(--teal);box-shadow:0 0 0 3px var(--teal-b)}
+.tl-dot.grn{background:var(--green);box-shadow:0 0 0 3px var(--green-b)}
+.tl-time{font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.tl-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:5px;color:var(--ink)}
+.tl-body{font-size:13px;color:var(--ink2);line-height:1.65}
+.tl-chip{display:inline-block;margin-top:7px;background:var(--gold-l);border:1px solid var(--gold-b);border-radius:7px;padding:4px 11px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gold)}
+.tl-chip.grn{background:var(--green-l);border-color:var(--green-b);color:var(--green)}
+
+/* ALERTS */
+.alert{border-radius:var(--rsm);padding:12px 14px;margin-bottom:12px;font-size:13px;line-height:1.65;display:flex;gap:9px;align-items:flex-start}
+.alert-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.alert.danger{background:var(--red-l);border:1px solid var(--red-b);color:var(--red)}
+.alert.success{background:var(--green-l);border:1px solid var(--green-b);color:var(--green)}
+.alert.info{background:var(--blue-l);border:1px solid var(--blue-b);color:var(--blue)}
+.alert.gold{background:var(--gold-l);border:1px solid var(--gold-b);color:var(--gold)}
+
+/* REC CARDS */
+.rec-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:11px}
+.rec-num{font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:.14em;margin-bottom:6px}
+.rec-title{font-size:14px;font-weight:600;margin-bottom:5px;color:var(--ink)}
+.rec-body{font-size:13px;color:var(--ink3);line-height:1.65}
+
+/* CHART */
+.chart-h{position:relative;height:230px;margin-bottom:4px}
+.two-chart{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.chart-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.chart-box h3{font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;font-family:'DM Mono',monospace;margin-bottom:12px}
+.chart-box .chart-h{height:180px}
+@media(max-width:520px){.two-chart{grid-template-columns:1fr}}
+
+/* FOOTER */
+footer{text-align:center;padding:36px 16px 28px;border-top:1px solid var(--border);color:var(--ink3);font-size:11px;font-family:'DM Mono',monospace}
+footer strong{color:var(--gold)}
+
+/* FADE-IN */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{opacity:0;transform:translateY(10px);transition:opacity .5s,transform .5s}
+.fade-in.vis{opacity:1;transform:translateY(0)}
+.hanim{opacity:0;animation:fadeUp .5s forwards}
+
+/* SECTION BG ALTERNATION */
+.bg-w{background:var(--bg2)}
+.bg-b{background:var(--bg)}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">Thinel · Finance 2026</div>
+  <ul class="nav-links">
+    <li><a href="#reminders">Reminders</a></li>
+    <li><a href="#hero">Overview</a></li>
+    <li><a href="#expenses">Expenses</a></li>
+    <li><a href="#cc">CC</a></li>
+    <li><a href="#allocation">Allocate</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#timeline">Timeline</a></li>
+    <li><a href="#recs">Advice</a></li>
+  </ul>
+  <div class="nav-right" id="navDate"></div>
+</nav>
+
+<!-- ════════════ REMINDERS ════════════ -->
+<div id="reminders">
+  <div class="rem-top">
+    <div class="rem-top-title">Payment reminders</div>
+    <div class="rem-badge">6 this month</div>
+  </div>
+
+  <div class="rem-scroll">
+    <div class="rem-card cg">
+      <div class="rem-due">5th of month</div>
+      <div class="rem-name">Rent — Nugegoda</div>
+      <div class="rem-amt">15,000</div>
+      <div class="rem-note">Boarding house · LKR</div>
+    </div>
+    <div class="rem-card cr">
+      <div class="rem-due">7th of month</div>
+      <div class="rem-name">HSBC Visa CC</div>
+      <div class="rem-amt">10,000+</div>
+      <div class="rem-note">Pay max · overlimit!</div>
+    </div>
+    <div class="rem-card ct">
+      <div class="rem-due">11th of month</div>
+      <div class="rem-name">Rent — Kandy</div>
+      <div class="rem-amt">10,000</div>
+      <div class="rem-note">Boarding · MBA</div>
+    </div>
+    <div class="rem-card cb">
+      <div class="rem-due">24th of month</div>
+      <div class="rem-name">YouTube Premium</div>
+      <div class="rem-amt">555</div>
+      <div class="rem-note">Auto-renews monthly</div>
+    </div>
+    <div class="rem-card cgr">
+      <div class="rem-due">Payday — first!</div>
+      <div class="rem-name">Emergency fund</div>
+      <div class="rem-amt">15,000</div>
+      <div class="rem-note">Transfer → BOC/NSB</div>
+    </div>
+    <div class="rem-card" style="border-color:rgba(251,191,36,0.2);background:rgba(251,191,36,0.06)">
+      <div class="rem-due" style="color:rgba(255,255,255,0.35)">Payday — second</div>
+      <div class="rem-name">Dating budget</div>
+      <div class="rem-amt" style="color:#e8c96b">8,000</div>
+      <div class="rem-note">Set aside before spending</div>
+    </div>
+  </div>
+
+  <div class="rem-alert">
+    <div class="rem-alert-icon">⚠</div>
+    <div class="rem-alert-text"><strong>Urgent:</strong> CC balance LKR 100,799 is <strong>799 LKR over the 100,000 limit.</strong> Payment was due 11 Mar 2026. Pay now or the card may be blocked. Call HSBC: <strong>+94 11 4472200</strong></div>
+  </div>
+
+  <div class="rem-check">
+    <div class="rem-check-hd">Payday checklist — tick off in order</div>
+    <div class="chk-row"><div class="chk-box" onclick="this.classList.toggle('on')"></div><span>Transfer LKR 10,000 → HSBC Visa CC</span><span class="chk-right">7th</span></div>
+    <div class="chk-row"><div class="chk-box" onclick="this.classList.toggle('on')"></div><span>Transfer LKR 15,000 → Emergency savings</span><span class="chk-right">BOC/NSB</span></div>
+    <div class="chk-row"><div class="chk-box" onclick="this.classList.toggle('on')"></div><span>Set aside LKR 8,000 for dating</span><span class="chk-right">Separate</span></div>
+    <div class="chk-row"><div class="chk-box" onclick="this.classList.toggle('on')"></div><span>Pay Nugegoda rent LKR 15,000</span><span class="chk-right">By 5th</span></div>
+    <div class="chk-row"><div class="chk-box" onclick="this.classList.toggle('on')"></div><span>Pay Kandy rent LKR 10,000</span><span class="chk-right">By 11th</span></div>
+  </div>
+</div>
+
+<!-- ════════════ HERO ════════════ -->
+<div id="hero" class="bg-w" style="padding:36px 0 30px">
+<div class="wrap">
+  <div class="hanim" style="animation-delay:.1s">
+    <div class="stag">Financial snapshot · March 2026</div>
+    <h1 class="hero-title">Your money,<br><span>fully mapped.</span></h1>
+    <p class="hero-sub">Income LKR 120,000 · CC balance LKR 100,799 @ 28% p.a. · Surplus 38.8%</p>
+  </div>
+  <div class="metrics hanim" style="animation-delay:.25s">
+    <div class="met mg"><div class="met-lbl">Monthly income</div><div class="met-val" data-count="120000" data-pre="LKR ">LKR 0</div><div class="met-sub">100% of earnings</div></div>
+    <div class="met mr"><div class="met-lbl">Monthly expenses</div><div class="met-val" data-count="73415" data-pre="LKR ">LKR 0</div><div class="met-sub">61.2% of income</div></div>
+    <div class="met mo"><div class="met-lbl">Monthly surplus</div><div class="met-val" data-count="46585" data-pre="LKR ">LKR 0</div><div class="met-sub">38.8% — healthy!</div></div>
+    <div class="met ma"><div class="met-lbl">CC debt @ 28% p.a.</div><div class="met-val" data-count="100799" data-pre="LKR ">LKR 0</div><div class="met-sub">Overlimit · act now</div></div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════ EXPENSES ════════════ -->
+<div id="expenses" class="bg-b">
+<div class="wrap">
+<section class="fade-in">
+  <div class="stag">Section 01</div>
+  <div class="stitle">Expense breakdown</div>
+  <div class="sdesc">Every rupee you spend monthly — traced to the item.</div>
+
+  <div class="card">
+    <div class="card-hd">By category (donut)</div>
+    <div class="chart-h"><canvas id="donutChart"></canvas></div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd">Line by line</div>
+    <div class="erow"><div class="erow-l"><div class="edot" style="background:#c0392b"></div>Housing — 2 rents</div><div class="erow-r"><span class="erow-amt">25,000</span><span class="erow-pct">34.1%</span></div></div>
+    <div class="erow"><div class="erow-l"><div class="edot" style="background:#1a7a4a"></div>Weekday food &amp; water</div><div class="erow-r"><span class="erow-amt">17,600</span><span class="erow-pct">24.0%</span></div></div>
+    <div class="erow"><div class="erow-l"><div class="edot" style="background:#b8860b"></div>Friday MBA commute</div><div class="erow-r"><span class="erow-amt">12,240</span><span class="erow-pct">16.7%</span></div></div>
+    <div class="erow"><div class="erow-l"><div class="edot" style="background:#1d6fa4"></div>Saturday MBA &amp; return</div><div class="erow-r"><span class="erow-amt">11,020</span><span class="erow-pct">15.0%</span></div></div>
+    <div class="erow"><div class="erow-l"><div class="edot" style="background:#7c3aed"></div>CC payment</div><div class="erow-r"><span class="erow-amt">4,000</span><span class="erow-pct">5.5%</span></div></div>
+    <div class="erow"><div class="erow-l"><div class="edot" style="background:#0e7c74"></div>Bike fuel</div><div class="erow-r"><span class="erow-amt">3,000</span><span class="erow-pct">4.1%</span></div></div>
+    <div class="erow"><div class="erow-l"><div class="edot" style="background:#db2777"></div>YouTube Premium</div><div class="erow-r"><span class="erow-amt">555</span><span class="erow-pct">0.8%</span></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd">Spend bars</div>
+    <div id="barRows"></div>
+  </div>
+
+  <div class="tband">
+    <div><div class="tband-lbl">Total expenses</div><div class="tband-val">73,415</div></div>
+    <div><div class="tband-lbl">Surplus</div><div class="tband-val g">46,585</div></div>
+    <div><div class="tband-lbl">Rate</div><div class="tband-val" style="font-size:18px">38.8%</div></div>
+  </div>
+</section>
+</div>
+</div>
+
+<!-- ════════════ DUE DATES ════════════ -->
+<div id="duedates" class="bg-w">
+<div class="wrap">
+<section class="fade-in">
+  <div class="stag">Section 02</div>
+  <div class="stitle">Payment calendar</div>
+  <div class="sdesc">Your four fixed payment dates every month.</div>
+  <div class="due-grid">
+    <div class="due-card"><div class="due-num">5<sup style="font-size:14px">th</sup></div><div class="due-name">Rent Nugegoda</div><div class="due-amt">15,000</div><div class="due-sub">LKR · Boarding</div></div>
+    <div class="due-card"><div class="due-num">7<sup style="font-size:14px">th</sup></div><div class="due-name">HSBC Visa CC</div><div class="due-amt">10,000+</div><div class="due-sub">Overlimit — pay max!</div></div>
+    <div class="due-card"><div class="due-num">11<sup style="font-size:14px">th</sup></div><div class="due-name">Rent Kandy</div><div class="due-amt">10,000</div><div class="due-sub">LKR · MBA boarding</div></div>
+    <div class="due-card"><div class="due-num">24<sup style="font-size:14px">th</sup></div><div class="due-name">YouTube</div><div class="due-amt">555</div><div class="due-sub">LKR · Auto-renew</div></div>
+  </div>
+  <div class="alert danger"><div class="alert-icon">⚠</div><div>CC is 799 LKR overlimit. Payment was due 11 March 2026. Pay immediately to stop fees and prevent card blockage.</div></div>
+</section>
+</div>
+</div>
+
+<!-- ════════════ CC STRATEGY ════════════ -->
+<div id="cc" class="bg-b">
+<div class="wrap">
+<section class="fade-in">
+  <div class="stag">Section 03</div>
+  <div class="stitle">Credit card strategy</div>
+  <div class="sdesc">4 payoff options compared. Balance LKR 100,799 · 28% p.a.</div>
+
+  <div class="cc-grid">
+    <div class="cc-card"><div class="cc-opt-lbl">Option A — Aggressive</div><div class="cc-pmt">35,000/mo</div><div class="cc-stat">Clears in <strong>4 months</strong></div><div class="cc-stat">Interest: <strong>LKR 4,764</strong></div><div class="cc-stat">Free: <strong>15,585/mo</strong></div></div>
+    <div class="cc-card"><div class="cc-opt-lbl">Option B — Balanced</div><div class="cc-pmt">20,000/mo</div><div class="cc-stat">Clears in <strong>6 months</strong></div><div class="cc-stat">Interest: <strong>LKR 7,737</strong></div><div class="cc-stat">Free: <strong>30,585/mo</strong></div></div>
+    <div class="cc-card active"><div class="cc-opt-lbl">Option C — Conservative</div><div class="cc-pmt">10,000/mo</div><div class="cc-stat">Clears in <strong>12 months</strong></div><div class="cc-stat">Interest: <strong>LKR 15,480</strong></div><div class="cc-stat">Free: <strong>40,585/mo</strong></div></div>
+    <div class="cc-card danger"><div class="cc-opt-lbl">Option D — Minimum</div><div class="cc-pmt">4,193/mo</div><div class="cc-stat">Clears in <strong>36 months</strong></div><div class="cc-stat">Interest: <strong>LKR 51,200+</strong></div><div class="cc-stat" style="color:var(--red)"><strong>Avoid — very costly</strong></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd">Live payoff simulator</div>
+    <div class="slider-wrap">
+      <span class="slider-lbl">Payment:</span>
+      <input type="range" id="ccSlider" min="4193" max="50000" value="10000" step="500" oninput="updateCC(this.value)">
+      <span class="slider-val" id="sliderVal">LKR 10,000</span>
+    </div>
+    <div class="pills">
+      <div class="pill"><div class="pill-lbl">Debt-free in</div><div class="pill-val" id="ccMo" style="color:var(--green)">12 mo</div></div>
+      <div class="pill"><div class="pill-lbl">Interest paid</div><div class="pill-val" id="ccInt" style="color:var(--red)">15,480</div></div>
+      <div class="pill"><div class="pill-lbl">Saves/month</div><div class="pill-val" id="ccFree" style="color:var(--gold)">40,585</div></div>
+    </div>
+    <div class="chart-h"><canvas id="ccChart"></canvas></div>
+  </div>
+  <div class="alert gold"><div class="alert-icon">★</div><div>Pay CC on payday first. No new purchases on this card for 12 months. Every new charge at 28% p.a. cancels your repayment progress.</div></div>
+</section>
+</div>
+</div>
+
+<!-- ════════════ ALLOCATION ════════════ -->
+<div id="allocation" class="bg-w">
+<div class="wrap">
+<section class="fade-in">
+  <div class="stag">Section 04</div>
+  <div class="stitle">Monthly allocation</div>
+  <div class="sdesc">How to split your LKR 46,585 surplus every month.</div>
+
+  <div class="alloc-card a1">
+    <div class="alloc-top"><div class="alloc-name">CC payment</div><div class="alloc-amt">10,000</div></div>
+    <div class="alloc-desc">Paid on the 7th. Clears debt in 12 months. No new card spending during this period.</div>
+    <div class="alloc-bar"><div class="alloc-fill" data-pct="21.5"></div></div>
+    <div class="alloc-pct">21.5% of surplus</div>
+  </div>
+  <div class="alloc-card a2">
+    <div class="alloc-top"><div class="alloc-name">Emergency fund</div><div class="alloc-amt">15,000</div></div>
+    <div class="alloc-desc">Separate BOC/NSB account on payday. Reaches ~LKR 200,000 (3 months buffer) by Month 13. Untouchable.</div>
+    <div class="alloc-bar"><div class="alloc-fill" data-pct="32.2"></div></div>
+    <div class="alloc-pct">32.2% of surplus</div>
+  </div>
+  <div class="alloc-card a3">
+    <div class="alloc-top"><div class="alloc-name">Dating budget</div><div class="alloc-amt">8,000</div></div>
+    <div class="alloc-desc">1 dinner date (3,500–4,500) + casual outing + small surprise. Plan it. Unused rolls to next month.</div>
+    <div class="alloc-bar"><div class="alloc-fill" data-pct="17.2"></div></div>
+    <div class="alloc-pct">17.2% of surplus</div>
+  </div>
+  <div class="alloc-card a4">
+    <div class="alloc-top"><div class="alloc-name">Personal buffer</div><div class="alloc-amt">13,585</div></div>
+    <div class="alloc-desc">Clothes, health, Sundays, the unexpected. Everything else is handled — spend this freely.</div>
+    <div class="alloc-bar"><div class="alloc-fill" data-pct="29.2"></div></div>
+    <div class="alloc-pct">29.2% of surplus</div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd">Allocation chart</div>
+    <div class="chart-h"><canvas id="allocChart"></canvas></div>
+  </div>
+</section>
+</div>
+</div>
+
+<!-- ════════════ CC ROADMAP ════════════ -->
+<div id="roadmap" class="bg-b">
+<div class="wrap">
+<section class="fade-in">
+  <div class="stag">Section 05</div>
+  <div class="stitle">12-month CC roadmap</div>
+  <div class="sdesc">Exact balance, interest, and remaining debt monthly at LKR 10,000/month.</div>
+  <div class="table-wrap">
+    <table><thead><tr><th>Month</th><th>Payment</th><th>Interest</th><th>Balance left</th><th></th></tr></thead>
+    <tbody id="rmBody"></tbody></table>
+  </div>
+  <div class="alert success" style="margin-top:13px"><div class="alert-icon">✓</div><div>Total interest at LKR 10,000/mo: ~LKR 15,480. Paying only the minimum (LKR 4,193) costs LKR 51,200+ — 3.3x more in interest.</div></div>
+</section>
+</div>
+</div>
+
+<!-- ════════════ SAVINGS ════════════ -->
+<div id="savings" class="bg-w">
+<div class="wrap">
+<section class="fade-in">
+  <div class="stag">Section 06</div>
+  <div class="stitle">Emergency fund growth</div>
+  <div class="sdesc">LKR 15,000/month into BOC/NSB at ~9% p.a.</div>
+  <div class="pills">
+    <div class="pill"><div class="pill-lbl">At month 6</div><div class="pill-val" style="color:var(--teal)">~91,100</div></div>
+    <div class="pill"><div class="pill-lbl">At month 12</div><div class="pill-val" style="color:var(--gold)">~184,500</div></div>
+    <div class="pill"><div class="pill-lbl">At month 13</div><div class="pill-val" style="color:var(--green)">~200,000</div></div>
+  </div>
+  <div class="card"><div class="chart-h"><canvas id="savChart"></canvas></div></div>
+</section>
+</div>
+</div>
+
+<!-- ════════════ AFTER CC ════════════ -->
+<div id="after" class="bg-b">
+<div class="wrap">
+<section class="fade-in">
+  <div class="stag">Section 07</div>
+  <div class="stitle">Life after the debt clears</div>
+  <div class="sdesc">Month 13 — LKR 25,000/month freed permanently.</div>
+  <div class="two-chart">
+    <div class="chart-box"><h3>Now (paying off)</h3><div class="chart-h"><canvas id="nowChart"></canvas></div></div>
+    <div class="chart-box"><h3>Month 13+ (cleared)</h3><div class="chart-h"><canvas id="afterChart"></canvas></div></div>
+  </div>
+  <div class="card" style="border-color:var(--gold-b);background:var(--gold-l)">
+    <div class="stag" style="margin-bottom:6px">The MBA windfall</div>
+    <p style="font-size:13px;color:var(--ink2);margin-bottom:14px">When your MBA ends, these costs disappear permanently:</p>
+    <div class="pills">
+      <div class="pill" style="border-color:var(--gold-b)"><div class="pill-lbl">Kandy rent</div><div class="pill-val" style="color:var(--gold)">10,000</div></div>
+      <div class="pill" style="border-color:var(--gold-b)"><div class="pill-lbl">Weekend travel</div><div class="pill-val" style="color:var(--gold)">~18,380</div></div>
+      <div class="pill" style="border-color:var(--green-b)"><div class="pill-lbl">Post-MBA investable</div><div class="pill-val" style="color:var(--green)">~53,000</div></div>
+    </div>
+    <p style="font-size:13px;color:var(--ink2);margin-top:12px;line-height:1.7">At LKR 53,000/month invested post-MBA, you hit <strong>LKR 1,000,000 in savings within 18–20 months</strong> of graduation.</p>
+  </div>
+</section>
+</div>
+</div>
+
+<!-- ════════════ TIMELINE ════════════ -->
+<div id="timeline" class="bg-w">
+<div class="wrap">
+<section class="fade-in">
+  <div class="stag">Section 08</div>
+  <div class="stitle">Your journey to the first million</div>
+  <div class="sdesc">Every milestone from today to LKR 1,000,000.</div>
+  <div class="timeline">
+    <div class="tl"><div class="tl-dot gold"></div><div class="tl-time">March 2026 — Now</div><div class="tl-title">Pay the CC immediately</div><div class="tl-body">799 LKR overlimit. Call HSBC (+94 11 4472200) and pay today. Open a BOC/NSB dedicated emergency account. Set up salary-day auto-transfers.</div><div class="tl-chip">Action: This week</div></div>
+    <div class="tl"><div class="tl-dot gold"></div><div class="tl-time">Month 1–6 (Mar–Aug 2026)</div><div class="tl-title">Debt shrinks, savings grow</div><div class="tl-body">CC drops from 100,799 to ~52,000. Emergency fund grows to ~90,000. No new CC spending. Stick to the allocation every month without exception.</div><div class="tl-chip">CC ~52,000 · Fund ~90,000</div></div>
+    <div class="tl"><div class="tl-dot teal"></div><div class="tl-time">Month 9 (Nov 2026)</div><div class="tl-title">Start your first fixed deposit</div><div class="tl-body">Emergency fund hits ~135,000. Move LKR 50,000 into a 6-month FD at People's Bank or BOC (~11% p.a.). CC balance down to ~25,000.</div><div class="tl-chip">FD LKR 50,000 @ 11% p.a.</div></div>
+    <div class="tl"><div class="tl-dot teal"></div><div class="tl-time">Month 12–13 (Feb–Mar 2027)</div><div class="tl-title">Credit card cleared</div><div class="tl-body">HSBC Visa fully paid. LKR 25,000/month freed. Emergency fund fully built at ~200,000 LKR. Zero consumer debt.</div><div class="tl-chip grn">Debt-free · LKR 25,000 unlocked</div></div>
+    <div class="tl"><div class="tl-dot grn"></div><div class="tl-time">Month 13+ (March 2027)</div><div class="tl-title">Wealth building begins</div><div class="tl-body">Roll LKR 25,000/month into a FD ladder. Every month one matures and you reinvest at higher amounts. NSB for tax-free interest.</div><div class="tl-chip grn">Investing LKR 25,000/month</div></div>
+    <div class="tl"><div class="tl-dot grn"></div><div class="tl-time">MBA graduation</div><div class="tl-title">The second windfall</div><div class="tl-body">Kandy rent + weekend MBA travel (~LKR 28,000/month) disappear. Investable amount jumps to ~LKR 53,000/month.</div><div class="tl-chip grn">~53,000/mo investable</div></div>
+    <div class="tl"><div class="tl-dot grn"></div><div class="tl-time">18–20 months post-MBA</div><div class="tl-title">LKR 1,000,000 milestone</div><div class="tl-body">FD compounding + disciplined saving. First million reached. Diversify into Ceybank Unit Trust or NDB Wealth for long-term equity growth.</div><div class="tl-chip grn">LKR 1,000,000 saved</div></div>
+  </div>
+</section>
+</div>
+</div>
+
+<!-- ════════════ RECOMMENDATIONS ════════════ -->
+<div id="recs" class="bg-b">
+<div class="wrap">
+<section class="fade-in">
+  <div class="stag">Section 09</div>
+  <div class="stitle">Recommendations</div>
+  <div class="sdesc">Nine specific actions — from this week to your first million.</div>
+  <div class="rec-card"><div class="rec-num">01 — URGENT THIS WEEK</div><div class="rec-title">Pay the CC today</div><div class="rec-body">You are 799 LKR overlimit. Call HSBC on +94 11 4472200, request a fee waiver, and pay as much as you can immediately. Highest priority action in this entire plan.</div></div>
+  <div class="rec-card"><div class="rec-num">02 — THIS WEEK</div><div class="rec-title">Open a dedicated emergency account</div><div class="rec-body">A separate BOC, Sampath, or NSB account labeled "Emergency Fund." Never mix with spending. Transfer LKR 15,000 every payday before anything else.</div></div>
+  <div class="rec-card"><div class="rec-num">03 — MONTHLY HABIT</div><div class="rec-title">Pay yourself first, every month</div><div class="rec-body">On salary day: LKR 10,000 to HSBC, LKR 15,000 to emergency savings, LKR 8,000 to dating. That order. Every month. Non-negotiable.</div></div>
+  <div class="rec-card"><div class="rec-num">04 — CC RULE</div><div class="rec-title">No new CC spending for 12 months</div><div class="rec-body">Cash or debit only for the entire payoff period. Every new purchase at 28% p.a. cancels your progress. Freeze the card if needed.</div></div>
+  <div class="rec-card"><div class="rec-num">05 — MONTH 9</div><div class="rec-title">Start your first fixed deposit</div><div class="rec-body">When emergency fund hits ~135,000, move LKR 50,000 into a 6-month FD (People's Bank or BOC, ~11% p.a.). Keep LKR 30,000 liquid always.</div></div>
+  <div class="rec-card"><div class="rec-num">06 — MONTH 13+</div><div class="rec-title">Build a monthly FD ladder</div><div class="rec-body">Open a new FD each month so one matures monthly. Use NSB for the first tranche — interest is tax-free up to the limit in Sri Lanka. Reinvest every maturity.</div></div>
+  <div class="rec-card"><div class="rec-num">07 — RELATIONSHIP</div><div class="rec-title">Plan your dates, not improvise</div><div class="rec-body">LKR 8,000: 1 dinner (3,500–4,500) + casual outing + small surprise. Plan in advance. Unused budget rolls to next month for something special.</div></div>
+  <div class="rec-card"><div class="rec-num">08 — RISK</div><div class="rec-title">Watch for lifestyle creep</div><div class="rec-body">As income grows post-MBA, keep expense growth below income growth. The gap between the two is literally where your future wealth lives.</div></div>
+  <div class="rec-card"><div class="rec-num">09 — LONG TERM</div><div class="rec-title">Diversify after the million</div><div class="rec-body">60% FDs for stability, 40% Ceybank Unit Trust or NDB Wealth for equity growth. Review and rebalance annually. Don't touch otherwise.</div></div>
+  <div class="alert info"><div class="alert-icon">i</div><div>Your 38.8% surplus rate is strong. The MBA changes your income trajectory permanently. The CC is the only real obstacle — gone in 12 months at LKR 10,000/month. Follow the plan.</div></div>
+</section>
+</div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--ink);margin-bottom:6px;font-weight:700">Follow the plan. Pay yourself first. The wealth follows.</div>
+  <strong>H Thinel Sahansa Methmina Jayawardhana</strong> · Personal Finance Dashboard · March 2026<br>
+  <span style="font-size:10px;color:var(--ink3)">For personal use only · Not financial advice</span>
+</footer>
+
+<script>
+/* DATE */
+document.getElementById('navDate').textContent=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+
+/* COUNTER */
+function animCount(el){
+  const target=parseInt(el.dataset.count),pre=el.dataset.pre||'';
+  const dur=1100,t0=performance.now();
+  const tick=now=>{
+    const p=Math.min((now-t0)/dur,1),e=1-Math.pow(1-p,3);
+    el.textContent=pre+Math.round(e*target).toLocaleString();
+    if(p<1)requestAnimationFrame(tick);else el.textContent=pre+target.toLocaleString();
+  };
+  requestAnimationFrame(tick);
+}
+
+/* CC CALC */
+const INIT=100799.41,RATE=28/12/100;
+function calcCC(pmt){
+  let bal=INIT,mo=0,paid=0,bals=[Math.round(INIT)];
+  while(bal>0.5&&mo<150){bal=bal*(1+RATE)-pmt;mo++;if(bal<0){paid+=pmt+bal;bal=0;}else{paid+=pmt;}bals.push(Math.round(Math.max(0,bal)));}
+  return{months:mo,interest:Math.round(paid-INIT),bals};
+}
+
+/* COLORS */
+const C={red:'#c0392b',green:'#1a7a4a',gold:'#b8860b',blue:'#1d6fa4',teal:'#0e7c74',purple:'#7c3aed',pink:'#db2777'};
+
+/* DONUT */
+new Chart(document.getElementById('donutChart'),{
+  type:'doughnut',
+  data:{labels:['Housing','Weekday food','Friday MBA','Saturday MBA','CC','Bike fuel','YouTube'],
+    datasets:[{data:[25000,17600,12240,11020,4000,3000,555],
+      backgroundColor:[C.red,C.green,C.gold,C.blue,C.purple,C.teal,C.pink],
+      borderWidth:2,borderColor:'#fff',hoverOffset:6}]},
+  options:{responsive:true,maintainAspectRatio:false,cutout:'64%',
+    plugins:{legend:{position:'right',labels:{font:{size:10},padding:8,boxWidth:9}},
+      tooltip:{callbacks:{label:c=>' LKR '+c.raw.toLocaleString()+' ('+Math.round(c.raw/73415*100)+'%)' }}}}
+});
+
+/* BAR ROWS */
+const bdata=[{l:'Housing',v:25000,c:C.red},{l:'Weekday food & water',v:17600,c:C.green},{l:'Friday MBA commute',v:12240,c:C.gold},{l:'Saturday MBA & return',v:11020,c:C.blue},{l:'CC payment',v:4000,c:C.purple},{l:'Bike fuel',v:3000,c:C.teal},{l:'YouTube',v:555,c:C.pink}];
+const br=document.getElementById('barRows');
+bdata.forEach(b=>{br.innerHTML+=`<div class="brow"><div class="brow-top"><span>${b.l}</span><span>LKR ${b.v.toLocaleString()}</span></div><div class="btrack"><div class="bfill" data-pct="${(b.v/25000*100).toFixed(1)}" style="background:${b.c}"></div></div></div>`;});
+
+/* CC CHART */
+let ccChart=null;
+function buildCCChart(pmt){
+  const r=calcCC(pmt),labels=r.bals.map((_,i)=>i===0?'Now':'M'+i);
+  if(ccChart){ccChart.data.labels=labels;ccChart.data.datasets[0].data=r.bals;ccChart.update();return;}
+  ccChart=new Chart(document.getElementById('ccChart'),{type:'line',
+    data:{labels,datasets:[{label:'Balance',data:r.bals,borderColor:C.gold,backgroundColor:'rgba(184,134,11,0.07)',fill:true,tension:0.4,pointRadius:3,pointBackgroundColor:C.gold,borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' LKR '+c.raw.toLocaleString()}}},
+      scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.05)'},ticks:{callback:v=>'LKR '+(v/1000).toFixed(0)+'K',color:C.teal,font:{size:10}}},x:{grid:{display:false},ticks:{color:'#9a958d',font:{size:10}}}}}});
+}
+function updateCC(v){
+  v=parseInt(v);document.getElementById('sliderVal').textContent='LKR '+v.toLocaleString();
+  const r=calcCC(v);
+  document.getElementById('ccMo').textContent=r.months+' mo';
+  document.getElementById('ccInt').textContent=r.interest.toLocaleString();
+  document.getElementById('ccFree').textContent=Math.max(0,50585-v).toLocaleString();
+  buildCCChart(v);
+}
+
+/* ROADMAP TABLE */
+const mons=['Mar 2026','Apr 2026','May 2026','Jun 2026','Jul 2026','Aug 2026','Sep 2026','Oct 2026','Nov 2026','Dec 2026','Jan 2027','Feb 2027'];
+let bal=INIT;const tb=document.getElementById('rmBody');
+mons.forEach((m,i)=>{
+  const int=bal*RATE;bal=bal+int-10000;const done=bal<=0;if(done)bal=0;
+  const tr=document.createElement('tr');tr.className=done?'done':i%2===1?'alt':'';
+  tr.innerHTML=`<td>${m}</td><td class="mono">10,000</td><td class="red">${Math.round(int).toLocaleString()}</td><td class="${done?'grn':'gold'}">${Math.round(Math.max(0,bal)).toLocaleString()}</td><td>${done?'<span class="badge done">CLEARED</span>':bal<20000?'<span class="badge close">Almost</span>':''}</td>`;
+  tb.appendChild(tr);
+});
+
+/* ALLOC CHART */
+new Chart(document.getElementById('allocChart'),{type:'bar',
+  data:{labels:['CC payment','Emergency fund','Dating budget','Personal buffer'],
+    datasets:[{data:[10000,15000,8000,13585],backgroundColor:['rgba(192,57,43,0.14)','rgba(26,122,74,0.14)','rgba(184,134,11,0.14)','rgba(29,111,164,0.14)'],borderColor:[C.red,C.green,C.gold,C.blue],borderWidth:1.5,borderRadius:6}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' LKR '+c.raw.toLocaleString()}}},
+    scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.05)'},ticks:{callback:v=>'LKR '+(v/1000).toFixed(0)+'K',color:'#9a958d',font:{size:10}}},x:{grid:{display:false},ticks:{color:'#4a4640',font:{size:11}}}}}
+});
+
+/* SAVINGS CHART */
+const sb=[];let s=0;for(let i=1;i<=13;i++){s=s*(1+0.09/12)+15000;sb.push(Math.round(s));}
+new Chart(document.getElementById('savChart'),{type:'line',
+  data:{labels:Array.from({length:13},(_,i)=>'M'+(i+1)),datasets:[{data:sb,borderColor:C.teal,backgroundColor:'rgba(14,124,116,0.07)',fill:true,tension:0.4,pointRadius:3,pointBackgroundColor:C.teal,borderWidth:2}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' LKR '+c.raw.toLocaleString()}}},
+    scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.05)'},ticks:{callback:v=>'LKR '+(v/1000).toFixed(0)+'K',color:'#9a958d',font:{size:10}}},x:{grid:{display:false},ticks:{color:'#9a958d',font:{size:10}}}}}
+});
+
+/* NOW/AFTER CHARTS */
+new Chart(document.getElementById('nowChart'),{type:'doughnut',data:{labels:['Expenses','CC','Fund','Dating','Buffer'],datasets:[{data:[69415,10000,15000,8000,13585],backgroundColor:['#e2ddd5',C.red,C.green,C.gold,C.blue],borderWidth:2,borderColor:'#fff',hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:6,boxWidth:8}}}}});
+new Chart(document.getElementById('afterChart'),{type:'doughnut',data:{labels:['Expenses','Investment','Dating','Buffer'],datasets:[{data:[59415,25000,8000,27585],backgroundColor:['#e2ddd5',C.green,C.gold,C.blue],borderWidth:2,borderColor:'#fff',hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:6,boxWidth:8}}}}});
+
+/* INTERSECTION OBSERVER */
+const io=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(!e.isIntersecting)return;
+    e.target.classList.add('vis');
+    e.target.querySelectorAll('.bfill').forEach(b=>b.style.width=b.dataset.pct+'%');
+    e.target.querySelectorAll('.alloc-fill').forEach(b=>b.style.width=b.dataset.pct+'%');
+    e.target.querySelectorAll('[data-count]').forEach(animCount);
+    if(e.target.closest('#cc'))buildCCChart(10000);
+    io.unobserve(e.target);
+  });
+},{threshold:0.07});
+document.querySelectorAll('.fade-in,section').forEach(el=>io.observe(el));
+
+/* TIMELINE STAGGER */
+const tlo=new IntersectionObserver(entries=>{
+  if(entries[0].isIntersecting){document.querySelectorAll('.tl').forEach((el,i)=>setTimeout(()=>el.classList.add('vis'),i*90));tlo.disconnect();}
+},{threshold:0.08});
+tlo.observe(document.getElementById('timeline'));
+
+/* ON LOAD */
+window.addEventListener('load',()=>{
+  document.querySelectorAll('[data-count]').forEach(animCount);
+  setTimeout(()=>{
+    document.querySelectorAll('.bfill').forEach(b=>b.style.width=b.dataset.pct+'%');
+    document.querySelectorAll('.alloc-fill').forEach(b=>b.style.width=b.dataset.pct+'%');
+  },300);
+  buildCCChart(10000);
+});
+</script>
+</body>
+</html>
